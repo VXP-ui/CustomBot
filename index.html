@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bot Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#7289DA', // Discord color
+                        dark: '#181818',
+                        light: '#FFFFFF',
+                    },
+                },
+            },
+            darkMode: 'class',
+        }
+
+        // Check for dark mode preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(93, 92, 222, 0.25);
+        }
+
+        .badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            background-color: #FF5757;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        
+        /* Ripple effect for buttons */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+            transform: translate3d(0, 0, 0);
+        }
+        
+        .ripple:after {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+            background-repeat: no-repeat;
+            background-position: 50%;
+            transform: scale(10, 10);
+            opacity: 0;
+            transition: transform .5s, opacity 1s;
+        }
+        
+        .ripple:active:after {
+            transform: scale(0, 0);
+            opacity: .3;
+            transition: 0s;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Tab system */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-light dark:bg-dark text-gray-800 dark:text-gray-200 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="sticky top-0 bg-white dark:bg-gray-900 shadow-md z-50">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.127a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127c-.598.35-1.22.645-1.873.892a.077.077 0 0 0-.041.106c.36.698.772 1.362 1.225 1.994a.076.076 0 0 0 .084.028a19.834 19.834 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.419c0 1.334-.956 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.419c0 1.334-.946 2.419-2.157 2.419z"/>
+                </svg>
+                <h1 class="text-xl font-bold text-primary">Discord Bot Shop</h1>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#home" class="font-medium hover:text-primary transition-colors nav-link">Home</a>
+                <a href="#packages" class="font-medium hover:text-primary transition-colors nav-link">Bot Packages</a>
+                <a href="#how-it-works" class="font-medium hover:text-primary transition-colors nav-link">How It Works</a>
+                <a href="#hosting" class="font-medium hover:text-primary transition-colors nav-link">Hosting Plans</a>
+                <a href="#contact" class="font-medium hover:text-primary transition-colors nav-link">Contact</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden text-gray-800 dark:text-gray-200 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-gray-900 px-4 py-2 shadow-lg">
+            <a href="#home" class="block py-2 font-medium hover:text-primary transition-colors nav-link mobile-link">Home</a>
+            <a href="#packages" class="block py-2 font-medium hover:text-primary transition-colors nav-link mobile-link">Bot Packages</a>
+            <a href="#how-it-works" class="block py-2 font-medium hover:text-primary transition-colors nav-link mobile-link">How It Works</a>
+            <a href="#hosting" class="block py-2 font-medium hover:text-primary transition-colors nav-link mobile-link">Hosting Plans</a>
+            <a href="#contact" class="block py-2 font-medium hover:text-primary transition-colors nav-link mobile-link">Contact</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="py-12 md:py-20 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/5 dark:to-purple-500/5">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-8 md:mb-0">
+                    <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight">Custom Discord Bots <span class="text-primary">Made Simple</span></h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-400 mb-6">Enhance your Discord server with custom bots designed for moderation, fun, and more. No coding required!</p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="#packages" class="px-6 py-3 bg-primary text-white rounded-lg font-medium text-center hover:bg-primary/90 transition-colors ripple">View Packages</a>
+                        <a href="#contact" class="px-6 py-3 border border-primary text-primary rounded-lg font-medium text-center hover:bg-primary/10 transition-colors ripple">Contact Us</a>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0ibm9uZSIvPjxjaXJjbGUgY3g9IjIwMCIgY3k9IjE1MCIgcj0iMTIwIiBmaWxsPSIjNUQ1Q0RFIiBmaWxsLW9wYWNpdHk9IjAuMSIvPjxwYXRoIGQ9Ik0yODAgMTUwQzI4MCAxOTQuMTgzIDI0NC4xODMgMjMwIDIwMCAyMzBDMTU1LjgxNyAyMzAgMTIwIDE5NC4xODMgMTIwIDE1MEMxMjAgMTA1LjgxNyAxNTUuODE3IDcwIDIwMCA3MEMyNDQuMTgzIDcwIDI4MCAxMDUuODE3IDI4MCAxNTBaIiBmaWxsPSIjNUQ1Q0RFIiBmaWxsLW9wYWNpdHk9IjAuMyIgc3Ryb2tlPSIjNUQ1Q0RFIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNMjQ1IDEzNUMyNDUgMTYwLjQwNSAyMjUuNDA1IDE4MCAyMDAgMTgwQzE3NC41OTUgMTgwIDE1NSAxNjAuNDA1IDE1NSAxMzVDMTU1IDEwOS41OTUgMTc0LjU5NSA5MCAyMDAgOTBDMjI1LjQwNSA5MCAyNDUgMTA5LjU5NSAyNDUgMTM1WiIgZmlsbD0iIzVENUNERSIgZmlsbC1vcGFjaXR5PSIwLjQiLz48cGF0aCBkPSJNMjAwIDE3MEMyMTMuODA3IDE3MCAyMjUgMTU4LjgwNyAyMjUgMTQ1QzIyNSAxMzEuMTkzIDIxMy44MDcgMTIwIDIwMCAxMjBDMTg2LjE5MyAxMjAgMTc1IDEzMS4xOTMgMTc1IDE0NUMxNzUgMTU4LjgwNyAxODYuMTkzIDE3MCAyMDAgMTcwWiIgZmlsbD0iIzVENUNERSIvPjxwYXRoIGQ9Ik0yNDAgMTkwTDI1MCAxOTVMMjYwIDIwMEwyNTAgMjA1TDI0MCAyMTBMMjQwIDE5MFoiIGZpbGw9IiM1RDVDREUiLz48cGF0aCBkPSJNMTYwIDE5MEwxNTAgMTk1TDE0MCAyMDBMMTUwIDIwNUwxNjAgMjEwTDE2MCAxOTBaIiBmaWxsPSIjNUQ1Q0RFIi8+PC9zdmc+" alt="Discord Bot Illustration" class="w-full max-w-md rounded-lg">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bot Packages Section -->
+    <section id="packages" class="py-16 bg-gray-50 dark:bg-gray-900">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Bot Packages</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Choose the perfect Discord bot package for your server. Each bot comes fully configured and ready to use.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Moderation Bot -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden relative card-hover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Default Moderation Bot</h3>
+                            <span class="text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-2xl font-bold">$3</span>
+                            <span class="text-gray-500 dark:text-gray-400 ml-2">or 450 Robux</span>
+                        </div>
+                        <div class="mb-6 h-48 overflow-auto">
+                            <p class="text-gray-600 dark:text-gray-400 mb-2">Commands:</p>
+                            <p class="text-sm">Ban, Kick, SoftBan, Unban, Purge, Purgelinks, Purge Files, Timeout, Untimeout, slow mode, lockdown, unlock. <span class="text-primary">+ 3 Custom Commands</span> of your choice.</p>
+                        </div>
+                        <button class="w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors ripple order-btn">Order on Discord</button>
+                    </div>
+                </div>
+
+                <!-- Fun Bot -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden relative card-hover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Fun Package Bot</h3>
+                            <span class="text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-2xl font-bold">$4.50</span>
+                            <span class="text-gray-500 dark:text-gray-400 ml-2">or 650 Robux</span>
+                        </div>
+                        <div class="mb-6 h-48 overflow-auto">
+                            <p class="text-gray-600 dark:text-gray-400 mb-2">Commands:</p>
+                            <p class="text-sm">fact, fake_delete, fakeban, fakekick, gayrate, hotrate, howhorny, lesbianrate, pervrate, ping, quote, ratemyusername, ratesmth, ratesomeone, remind, rizzrate, say, sayv2, ship, shout, simpcheck. <span class="text-primary">+ 3 Custom Commands</span> of your choice.</p>
+                        </div>
+                        <button class="w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors ripple order-btn">Order on Discord</button>
+                    </div>
+                </div>
+
+                <!-- Full Bot Package -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden relative card-hover">
+                    <div class="badge">Popular</div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Full Bot Package</h3>
+                            <span class="text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-2xl font-bold">$10</span>
+                            <span class="text-gray-500 dark:text-gray-400 ml-2">or 1250 Robux</span>
+                        </div>
+                        <div class="mb-6 h-48 overflow-auto">
+                            <p class="text-gray-600 dark:text-gray-400 mb-2">Commands:</p>
+                            <p class="text-sm">All Fun and Moderation commands, along with role editing commands and more server commands. <span class="font-semibold">Over 60 Commands!</span> <span class="text-primary">+ 5 Custom Commands</span> of your choice.</p>
+                        </div>
+                        <button class="w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors ripple order-btn">Order on Discord</button>
+                    </div>
+                </div>
+
+                <!-- Full Custom Bot -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden relative card-hover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Full Custom Bot</h3>
+                            <span class="text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-2xl font-bold">$15</span>
+                            <span class="text-gray-500 dark:text-gray-400 ml-2">or 1950 Robux</span>
+                        </div>
+                        <div class="mb-6 h-48 overflow-auto">
+                            <p class="text-gray-600 dark:text-gray-400 mb-2">Commands:</p>
+                            <p class="text-sm"><span class="text-primary">30 Custom Commands</span> of your choice. Fully customized to your server's needs.</p>
+                        </div>
+                        <button class="w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors ripple order-btn">Order on Discord</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">How It Works</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Getting your custom Discord bot is simple. Follow these steps to enhance your server today.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                <!-- Step 1 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center card-hover">
+                    <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary text-2xl font-bold mx-auto mb-4">1</div>
+                    <h3 class="text-xl font-semibold mb-3">Choose Your Package</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Select the bot package that best fits your Discord server's needs.</p>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center card-hover">
+                    <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary text-2xl font-bold mx-auto mb-4">2</div>
+                    <h3 class="text-xl font-semibold mb-3">Contact Us on Discord</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Reach out to us via Discord to place your order and complete payment.</p>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 text-center card-hover">
+                    <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary text-2xl font-bold mx-auto mb-4">3</div>
+                    <h3 class="text-xl font-semibold mb-3">Receive Your Bot</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Kfu will deliver the bot file via your DMs with it already fully setup for you.</p>
+                </div>
+            </div>
+            
+            <div class="mt-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 max-w-4xl mx-auto">
+                <!-- Tab navigation -->
+                <div class="flex border-b border-gray-200 dark:border-gray-700 mb-6">
+                    <button id="tab-delivery" class="tab-button px-4 py-2 text-primary border-b-2 border-primary -mb-px ripple">Delivery</button>
+                    <button id="tab-setup" class="tab-button px-4 py-2 text-gray-500 dark:text-gray-400 border-b-2 border-transparent ripple">Setup</button>
+                </div>
+                
+                <!-- Tab content -->
+                <div id="content-delivery" class="tab-content active">
+                    <h3 class="text-xl font-semibold mb-4">How will we deliver the bot?</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Kfu will deliver the bot file via your DMs with it already fully setup for you, only thing you'll need is a bot token which we can help set up for you!</p>
+                </div>
+                
+                <div id="content-setup" class="tab-content">
+                    <h3 class="text-xl font-semibold mb-4">How do I run the bot?</h3>
+                    <p class="text-gray-600 dark:text-gray-400">To run your Discord bot, first make sure all you fully extracted the file into your environment. Then find the .env file with your and put in your bot token. If you're hosting it online, upload your bot files there, set the startup command to node index.js, and run npm install to install all required packages. Then, just click the start button to launch your bot. If you're running the bot on your own computer, open a terminal in the bot's folder, run npm install to install dependencies, and then start it with node index.js.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hosting Plans Section -->
+    <section id="hosting" class="py-16 bg-gray-50 dark:bg-gray-900">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Bot Hosting Plans</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Want us to host your bot? Choose from our reliable hosting plans below.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                <!-- Plan 1 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden relative card-hover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Basic Hosting</h3>
+                            <span class="text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-2xl font-bold">$3</span>
+                            <span class="text-gray-500 dark:text-gray-400 ml-2">/month</span>
+                        </div>
+                        <div class="mb-6 h-44 overflow-auto">
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-400">
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    Low traffic server
+                                </li>
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    98% uptime
+                                </li>
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    Uptime tracking via /stats
+                                </li>
+                            </ul>
+                        </div>
+                        <button class="w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors ripple hosting-btn">Order on Discord</button>
+                    </div>
+                </div>
+                
+                <!-- Plan 2 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden relative card-hover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Standard Hosting</h3>
+                            <span class="text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-2xl font-bold">$4</span>
+                            <span class="text-gray-500 dark:text-gray-400 ml-2">/month</span>
+                        </div>
+                        <div class="mb-6 h-44 overflow-auto">
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-400">
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    Low traffic server
+                                </li>
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    DDoS Protection
+                                </li>
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    Almost 100% uptime
+                                </li>
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    Uptime tracking via /stats
+                                </li>
+                            </ul>
+                        </div>
+                        <button class="w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors ripple hosting-btn">Order on Discord</button>
+                    </div>
+                </div>
+                
+                <!-- Plan 3 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden relative card-hover">
+                    <div class="badge">Best Value</div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Premium Hosting</h3>
+                            <span class="text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-2xl font-bold">$10</span>
+                            <span class="text-gray-500 dark:text-gray-400 ml-2">/month</span>
+                        </div>
+                        <div class="mb-6 h-44 overflow-auto">
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-400">
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    All Standard features
+                                </li>
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    100% guaranteed uptime
+                                </li>
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    Free bonus bot in the future
+                                </li>
+                                <li class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    Priority support
+                                </li>
+                            </ul>
+                        </div>
+                        <button class="w-full py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors ripple hosting-btn">Order on Discord</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 p-4 rounded max-w-4xl mx-auto">
+                <p class="text-yellow-800 dark:text-yellow-200 text-sm"><strong>Note:</strong> You won't be able to see your server directly but can view uptime by doing /stats on your custom bot.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-16 bg-gray-50 dark:bg-gray-900">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Contact Us</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Join our Discord server to get your custom bot and ask any questions.</p>
+            </div>
+            
+            <div class="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                <div class="p-6 md:p-8 text-center">
+                    <div class="mb-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-primary mx-auto mb-4" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.127a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127c-.598.35-1.22.645-1.873.892a.077.077 0 0 0-.041.106c.36.698.772 1.362 1.225 1.994a.076.076 0 0 0 .084.028a19.834 19.834 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.419c0 1.334-.956 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.419c0 1.334-.946 2.419-2.157 2.419z"/>
+                        </svg>
+                        <h3 class="text-2xl font-bold mb-2">Join Our Discord Server</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-6">We handle all orders, payments, and support through our Discord server. Click the button below to join!</p>
+                    </div>
+                    
+                    <a href="https://discord.gg/exovyn" target="_blank" class="inline-block px-8 py-4 bg-primary text-white rounded-lg font-bold text-lg hover:bg-primary/90 transition-colors ripple">
+                        <div class="flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.127a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127c-.598.35-1.22.645-1.873.892a.077.077 0 0 0-.041.106c.36.698.772 1.362 1.225 1.994a.076.076 0 0 0 .084.028a19.834 19.834 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
+                            </svg>
+                            Join Discord
+                        </div>
+                    </a>
+                    
+                    <div class="mt-6 text-gray-500 dark:text-gray-400 text-sm">
+                        <p>Discord Invite Link: <a href="https://discord.gg/exovyn" target="_blank" class="text-primary hover:underline">discord.gg/exovyn</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Got questions? We've got answers.</p>
+            </div>
+            
+            <div class="max-w-3xl mx-auto">
+                <div class="space-y-6">
+                    <!-- FAQ Item 1 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                        <button class="faq-btn flex justify-between items-center w-full text-left focus:outline-none">
+                            <span class="text-lg font-semibold">How long does it take to receive my bot?</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary transform transition-transform faq-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div class="faq-content hidden mt-4 text-gray-600 dark:text-gray-400">
+                            <p>Most bots are delivered within 24-48 hours after payment is confirmed. For custom bots with complex requirements, it may take a bit longer.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ Item 2 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                        <button class="faq-btn flex justify-between items-center w-full text-left focus:outline-none">
+                            <span class="text-lg font-semibold">Do I need technical knowledge to use these bots?</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary transform transition-transform faq-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div class="faq-content hidden mt-4 text-gray-600 dark:text-gray-400">
+                            <p>No! Our bots are designed to be user-friendly. We deliver them fully configured and ready to use. We'll also help you set up your bot token if needed.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ Item 3 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                        <button class="faq-btn flex justify-between items-center w-full text-left focus:outline-none">
+                            <span class="text-lg font-semibold">Can I request specific custom commands?</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary transform transition-transform faq-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div class="faq-content hidden mt-4 text-gray-600 dark:text-gray-400">
+                            <p>Absolutely! Each package includes a specific number of custom commands. Just provide details of what functionality you want when ordering, and we'll make it happen.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ Item 4 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                        <button class="faq-btn flex justify-between items-center w-full text-left focus:outline-none">
+                            <span class="text-lg font-semibold">How do I install the bot on my server?</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary transform transition-transform faq-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div class="faq-content hidden mt-4 text-gray-600 dark:text-gray-400">
+                            <p>We provide step-by-step instructions with your bot delivery. It's a simple process that involves creating a bot application on Discord Developer Portal, getting a token, and inviting the bot to your server. We're happy to assist with this process if needed.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ Item 5 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                        <button class="faq-btn flex justify-between items-center w-full text-left focus:outline-none">
+                            <span class="text-lg font-semibold">What payment methods do you accept?</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary transform transition-transform faq-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div class="faq-content hidden mt-4 text-gray-600 dark:text-gray-400">
+                            <p>We accept payment in USD or Robux. Payment details and options will be provided when you contact us on Discord to place your order.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Order Now Banner -->
+    <section class="bg-primary py-12">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-2xl md:text-3xl font-bold text-white mb-6">Ready to enhance your Discord server?</h2>
+            <a href="https://discord.gg/exovyn" target="_blank" class="inline-block px-8 py-4 bg-white text-primary rounded-lg font-medium text-lg hover:bg-gray-100 transition-colors ripple">Join Our Discord</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.127a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127c-.598.35-1.22.645-1.873.892a.077.077 0 0 0-.041.106c.36.698.772 1.362 1.225 1.994a.076.076 0 0 0 .084.028a19.834 19.834 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.419c0 1.334-.956 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.419c0 1.334-.946 2.419-2.157 2.419z"/>
+                        </svg>
+                        <h2 class="text-xl font-bold text-white">Discord Bot Shop</h2>
+                    </div>
+                    <p class="text-gray-400 mt-2">Custom Discord bots for your server's needs.</p>
+                </div>
+                
+                <div class="flex space-x-6">
+                    <a href="https://discord.gg/exovyn" target="_blank" class="text-gray-400 hover:text-primary transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.127a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127c-.598.35-1.22.645-1.873.892a.077.077 0 0 0-.041.106c.36.698.772 1.362 1.225 1.994a.076.076 0 0 0 .084.028a19.834 19.834 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.419c0 1.334-.956 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.419c0 1.334-.946 2.419-2.157 2.419z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            
+            <hr class="border-gray-800 my-8">
+            
+            <div class="text-center">
+                <p class="text-gray-400">&copy; <span id="current-year"></span> Discord Bot Shop. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // Mobile Menu Toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Close mobile menu when clicking links
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+        
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href');
+                if (targetId.startsWith('#')) {
+                    e.preventDefault();
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            });
+        });
+        
+        // FAQ accordions
+        const faqButtons = document.querySelectorAll('.faq-btn');
+        faqButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const content = button.nextElementSibling;
+                const icon = button.querySelector('.faq-icon');
+                
+                // Toggle current FAQ
+                content.classList.toggle('hidden');
+                icon.classList.toggle('rotate-180');
+            });
+        });
+        
+        // Tab system
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active state from all buttons
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('text-primary', 'border-primary');
+                    btn.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                });
+                
+                // Add active state to clicked button
+                button.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
+                button.classList.add('text-primary', 'border-primary');
+                
+                // Hide all content
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Show content associated with clicked button
+                const tabId = button.id.replace('tab-', 'content-');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Ripple effect for buttons
+        function createRipple(e) {
+            const button = e.currentTarget;
+            
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+            
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${e.clientX - button.getBoundingClientRect().left - radius}px`;
+            circle.style.top = `${e.clientY - button.getBoundingClientRect().top - radius}px`;
+            circle.classList.add("ripple-circle");
+            
+            const ripple = button.getElementsByClassName("ripple-circle")[0];
+            
+            if (ripple) {
+                ripple.remove();
+            }
+            
+            button.appendChild(circle);
+        }
+        
+        const buttons = document.querySelectorAll(".ripple");
+        buttons.forEach(button => {
+            button.addEventListener("mousedown", createRipple);
+        });
+        
+        // Order buttons redirect to Discord
+        document.querySelectorAll('.order-btn, .hosting-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const packageName = button.closest('.card-hover').querySelector('h3').textContent;
+                window.open('https://discord.gg/exovyn', '_blank');
+            });
+        });
+    </script>
+    
+    <style>
+        /* Additional styles for ripple effect */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+            transform: translate3d(0, 0, 0);
+        }
+        
+        .ripple-circle {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(2.5);
+                opacity: 0;
+            }
+        }
+    </style>
+</body>
+</html>
